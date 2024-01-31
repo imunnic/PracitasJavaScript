@@ -1,4 +1,4 @@
-const json = `[
+const PERSONASSTRING = `[
   {
     "name": "Leanne Graham",
     "username": "Bret",
@@ -240,4 +240,4 @@ const json = `[
     "url": "https://prueba.dev/api/users/10/"
   }
 ]`;
-export const personas = JSON.parse(json);
+export const PERSONAS = JSON.parse(PERSONASSTRING);

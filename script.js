@@ -1,13 +1,13 @@
-// import { personas } from "./json.js";
+ import { PERSONAS } from "./json.js";
 
 //clases
 class Usuario{
-    idUser;
-    nombre;
-    nombreUser;
-    email;
-    empresa;
-    direccion;
+    #idUser;
+    #nombre;
+    #nombreUser;
+    #email;
+    #empresa;
+    #direccion;
 
     constructor(){
         this.idUser="";
@@ -29,8 +29,9 @@ console.log(sessionStorage.getItem("practica"));
 var imagenes = ["./images/imagen1.jpeg","./images/imagen2.jpeg", "./images/imagen3.jpeg", "./images/imagen4.jpeg"];
 var contadorImagen = 0;
 var reloj;
-// const nombres = data.map(persona => persona.name);
-// console.log(nombres);
+var usuarios;
+var usuariosCiudad1;
+var usuariosCiudad2;
 var direccionPrueba = {calle:"Gravina 7", ciudad: "Roma", codigoPostal:"41449"}
 
 //crea un usuario
@@ -56,30 +57,41 @@ document.getElementById('clock').addEventListener('mouseover', ponerColorHora);
 document.getElementById('clock').addEventListener('mouseleave', quitarColorHora);
 document.getElementById('titulo').addEventListener('mouseover', ponerColorTitulo);
 document.getElementById('titulo').addEventListener('mouseleave', quitarColorTitulo);
+document.getElementById('ciudadSelect').addEventListener('change', cambiarSeleccion);
 document.getElementById('imagen').onclick = cambiarImagen;
+document.getElementById('usuariosLink').onclick = mostrarUsuarios;
+
 //definir la hora del reloj
 reloj = () => {
     var fecha = new Date();
     return fecha.getHours() + ":" + fecha.getMinutes() + ":" + fecha.getSeconds();
 };
 
-// Usar fetch para leer el archivo JSON
-// fetch(URL)
-//   .then(response => response.json()) // Convertir la respuesta a formato JSON
-//   .then(data => {
-//     // Acceder a la lista de personas
-//     const personas = data.personas;
-
-//     // Iterar sobre cada persona y mostrar el nombre
-//     personas.forEach(persona => {
-//       console.log(persona.nombre);
-//     });
-//   })
-//   .catch(error => console.error('Error al cargar el archivo JSON:', error));
-
 //ir actualizando la hora del reloj cada segundo
 setInterval(actualizarHora, 1000)
 
+//Guarda los usuarios del json como Usuario en un array
+usuarios = mapPersonas();
+usuarios.forEach(element => {
+    console.log(element.nombre);
+});
+
+//guarda los usuarios de cada una de las ciudades en un array distinto
+usuariosCiudad1 = usuarios.filter(persona => persona.direccion.ciudad == "Gwenborough");
+usuariosCiudad2 = usuarios.filter(persona => persona.direccion.ciudad == "Wisokyburgh");
+
+//imprime los usuarios de cada ciudad
+console.log("Usuarios de Gwenborough");
+usuariosCiudad1.forEach(persona => console.log(persona.nombre));
+console.log("Usuarios de Wisokyburgh");
+usuariosCiudad2.forEach(persona => console.log(persona.nombre));
+
+usuariosCiudad1.sort((a,b) => compareString(a.nombre,b.nombre));
+console.log("Usuarios de Gwenborough ordenados por nombre");
+usuariosCiudad1.forEach(persona => console.log(persona.nombre));
+usuariosCiudad2.sort((a,b) => compareString(a.nombre,b.nombre));
+console.log("Usuarios de Gwenborough ordenados por nombre");
+usuariosCiudad2.forEach(persona => console.log(persona.nombre));
 
 //definicion de funciones
 function actualizarHora(){
@@ -108,4 +120,73 @@ function cambiarImagen(){
         contadorImagen = 0;
     }
     document.getElementById('imagen').src = imagenes[contadorImagen];
+}
+
+//Trabajo con json
+
+function parsePersona(numeroObjetoJson){
+    var persona = new Usuario();
+    persona.nombre = PERSONAS[numeroObjetoJson].name;
+    persona.nombreUser = PERSONAS[numeroObjetoJson].username;
+    persona.email = PERSONAS[numeroObjetoJson].email;
+    persona.empresa = PERSONAS[numeroObjetoJson].company.name;
+    persona.direccion.calle = PERSONAS[numeroObjetoJson].address.street;
+    persona.direccion.ciudad = PERSONAS[numeroObjetoJson].address.city;
+    persona.direccion.codigoPostal = PERSONAS[numeroObjetoJson].address.zipcode;
+    persona.url = PERSONAS[numeroObjetoJson].url;
+    return persona;
+}
+
+function mapPersonas(){
+    let arrayPersonas = new Array(PERSONAS.length);
+    let i = 0;
+    PERSONAS.forEach(element => {
+        let persona = parsePersona(i);
+        arrayPersonas[i] = persona;
+        i++;
+    })
+    return arrayPersonas;
+}
+
+function compareString(a,b){
+    if (a > b) {
+        return 1;
+    } else if (a == b) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+function mostrarUsuarios(){
+    let usuariosOrdenados = usuarios.sort((a,b) => compareString(a.nombre, b.nombre));
+    let i = 1;
+    usuariosOrdenados.forEach(usuario => {
+        document.getElementById("usuariosLabel").innerHTML += "Usuario " + i + ":" + '<br>' +
+        "  - Nombre: " + usuario.nombre + '<br>' +
+        "  - Usuario: " + usuario.nombreUser + '<br>' +
+        "  - Email: " + usuario.email + '<br>' +
+        "  - Empresa: " + usuario.empresa + '<br>';
+        i++;
+    }) 
+}
+
+function mostrarUsuariosFiltrados(filtro){
+    document.getElementById("usuariosLabel").innerHTML = "";
+    let usuariosOrdenados = usuarios.sort((a,b) => compareString(a.nombre, b.nombre));
+    let usuariosFiltrados = usuariosOrdenados.filter(usuario => usuario.direccion.ciudad.includes(filtro));
+    let i = 1;
+    usuariosFiltrados.forEach(usuario => {
+        document.getElementById("usuariosLabel").innerHTML += "Usuario " + i + ":" + '<br>' +
+        "  - Nombre: " + usuario.nombre + '<br>' +
+        "  - Usuario: " + usuario.nombreUser + '<br>' +
+        "  - Email: " + usuario.email + '<br>' +
+        "  - Empresa: " + usuario.empresa + '<br>';
+        i++;
+    }) 
+}
+
+function cambiarSeleccion(){
+    let seleccion = document.getElementById('ciudadSelect').value;
+    mostrarUsuariosFiltrados(seleccion);
 }
