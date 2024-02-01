@@ -1,6 +1,8 @@
  import { PERSONAS } from "./json.js";
-
+//TODO hacer getters y setters
+//TODO implementar filtro con id
 //clases
+//#region clases
 class Usuario{
     #idUser;
     #nombre;
@@ -18,10 +20,15 @@ class Usuario{
         this.direccion = {calle:"",ciudad:"", codigoPostal:""};
     }
 
-    getId(url){
-        return this.idUser;
+    setId(url){
+        this.idUser = parseInt(url.match(/\d+$/));
+    }
+
+    setNombre(nombre){
+        this.#nombre = nombre;
     }
 }
+//#endregion clases
 //main
 //definición de variables
 sessionStorage.setItem("practica", "Práctica Final ECMACScript");
@@ -43,6 +50,7 @@ userPrueba.email = "pruebapf7@hotmail.com";
 userPrueba.empresa = "Leroy Meril";
 userPrueba.direccion = direccionPrueba;
 userPrueba.url = "https://prueba.dev/api/users/102";
+userPrueba.setId(userPrueba.url);
 //muestra por consola
 console.log(userPrueba.nombre);
 console.log(userPrueba.nombreUser);
@@ -51,6 +59,7 @@ console.log(userPrueba.empresa);
 console.log(userPrueba.direccion.calle);
 console.log(userPrueba.direccion.ciudad);
 console.log(userPrueba.url);
+console.log(userPrueba.idUser)
 
 //escucha de eventos
 document.getElementById('clock').addEventListener('mouseover', ponerColorHora);
@@ -58,8 +67,10 @@ document.getElementById('clock').addEventListener('mouseleave', quitarColorHora)
 document.getElementById('titulo').addEventListener('mouseover', ponerColorTitulo);
 document.getElementById('titulo').addEventListener('mouseleave', quitarColorTitulo);
 document.getElementById('ciudadSelect').addEventListener('change', cambiarSeleccion);
+document.getElementById('selectUsuario').addEventListener('change', cambiarSeleccionUsuario);
 document.getElementById('imagen').onclick = cambiarImagen;
 document.getElementById('usuariosLink').onclick = mostrarUsuarios;
+document.addEventListener('keypress', keyPressListner);
 
 //definir la hora del reloj
 reloj = () => {
@@ -114,6 +125,18 @@ function quitarColorTitulo(){
     document.getElementById('titulo').style.color = '#000000';
 }
 
+function ponerColorGwenborough(){
+    document.getElementById('usuariosLabel').style.color = '#0000FF';
+}
+
+function ponerColorWisokyburgh(){
+    document.getElementById('usuariosLabel').style.color = '#00FF00';
+}
+
+function ponerColorGeneral(){
+    document.getElementById('usuariosLabel').style.color = '#000000';
+}
+
 function cambiarImagen(){
     contadorImagen == contadorImagen++;
     if (contadorImagen >= imagenes.length){
@@ -158,8 +181,12 @@ function compareString(a,b){
     }
 }
 
+function ordenarUsuarios(){
+    return usuarios.sort((a,b) => compareString(a.nombre, b.nombre));
+}
+//TODO ver si es necesario
 function mostrarUsuarios(){
-    let usuariosOrdenados = usuarios.sort((a,b) => compareString(a.nombre, b.nombre));
+    let usuariosOrdenados = ordenarUsuarios();
     let i = 1;
     usuariosOrdenados.forEach(usuario => {
         document.getElementById("usuariosLabel").innerHTML += "Usuario " + i + ":" + '<br>' +
@@ -168,14 +195,23 @@ function mostrarUsuarios(){
         "  - Email: " + usuario.email + '<br>' +
         "  - Empresa: " + usuario.empresa + '<br>';
         i++;
-    }) 
+    });
+    calcularDatos(usuariosOrdenados);
+    mostrarOpcionesUsuario(usuariosOrdenados);
 }
 
 function mostrarUsuariosFiltrados(filtro){
     document.getElementById("usuariosLabel").innerHTML = "";
-    let usuariosOrdenados = usuarios.sort((a,b) => compareString(a.nombre, b.nombre));
+    let usuariosOrdenados = ordenarUsuarios();
     let usuariosFiltrados = usuariosOrdenados.filter(usuario => usuario.direccion.ciudad.includes(filtro));
     let i = 1;
+    if (filtro == "Gwenborough"){
+        ponerColorGwenborough();
+    } else if (filtro == "Wisokyburgh"){
+        ponerColorWisokyburgh();
+    } else {
+        ponerColorGeneral();
+    }
     usuariosFiltrados.forEach(usuario => {
         document.getElementById("usuariosLabel").innerHTML += "Usuario " + i + ":" + '<br>' +
         "  - Nombre: " + usuario.nombre + '<br>' +
@@ -184,9 +220,62 @@ function mostrarUsuariosFiltrados(filtro){
         "  - Empresa: " + usuario.empresa + '<br>';
         i++;
     }) 
+    calcularDatos(usuariosFiltrados);
 }
 
 function cambiarSeleccion(){
     let seleccion = document.getElementById('ciudadSelect').value;
     mostrarUsuariosFiltrados(seleccion);
 }
+
+function calcularDatos(usuariosOrdenados){
+    document.getElementById("usuariosLabel").innerHTML += "Nombre de usuarios mayores de edad <br>";
+    usuariosOrdenados.forEach(usuario => {
+        if (isMayorEdad(usuario.nombreUser)){
+            document.getElementById("usuariosLabel").innerHTML += usuario.nombreUser + "<br>";
+        }
+    });
+    document.getElementById("usuariosLabel").innerHTML += "Nombre de usuarios menores de edad <br>";
+    usuariosOrdenados.forEach(usuario => {
+        if (!isMayorEdad(usuario.nombreUser)){
+            document.getElementById("usuariosLabel").innerHTML += usuario.nombreUser + "<br>";
+        }
+    });
+}
+
+//TODO Hacer con la id
+function isMayorEdad(nombreUsuario){
+    let usuarioJson = PERSONAS.filter(usuario => usuario.username == nombreUsuario);
+    return usuarioJson[0].age > 22; 
+}
+
+function mostrarVentana(){
+    //abre ventana
+    var win =window.open("","","width=100, height=100");
+    win.document.write(sessionStorage.getItem("practica"));
+    //cierre automático
+    setTimeout(function() {
+        win.close();
+      }, 3000);
+}
+
+function keyPressListner(event){
+    if ((event.key == 'p') | (event.key == 'P')){
+        mostrarVentana();
+    }
+}
+
+function mostrarOpcionesUsuario(usuariosOrdenados){
+    document.getElementById('selectUsuario').innerHTML = "";
+    usuariosOrdenados.forEach(usuario => {
+        document.getElementById('selectUsuario').innerHTML += "<option value='"+usuario.nombreUser + "' selected>" + usuario.nombreUser +"</option>";
+    })
+}
+
+function cambiarSeleccionUsuario(){
+
+    let usuariofiltrado = usuarios.filter(usuario => usuario.nombreUser === document.getElementById('selectUsuario').value);
+    document.getElementById('usuarioDireccionLabel').innerHTML = "C/" + usuariofiltrado[0].direccion.calle +
+    ", " + usuariofiltrado[0].direccion.ciudad + " (" + usuariofiltrado[0].direccion.codigoPostal + ")";
+}
+
